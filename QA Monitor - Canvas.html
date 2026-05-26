@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>QA Monitor — Design Canvas</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  html,body,#root{height:100%;margin:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+  iframe{border:0;display:block;background:#f8fafc}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel">
+const SRC = "QA Monitor.html";
+const W = 1280, H = 820;
+
+// Each artboard renders the prototype in an iframe with hash-driven defaults.
+// chrome=on keeps the in-app sidebar/topbar (so each frame stands alone);
+// chrome=off would hide the chrome — but for a Figma-style overview, we keep it.
+const Frame = ({ screen, role = "Manager" }) => (
+  <iframe
+    src={`${SRC}#screen=${screen}&role=${encodeURIComponent(role)}&chrome=on`}
+    width={W} height={H} loading="lazy"
+    title={`${screen} — ${role}`}
+  />
+);
+
+function Canvas() {
+  return (
+    <DesignCanvas>
+      <DCSection id="manager" title="Manager — at a glance" subtitle="Daily team-health view, exports, insights">
+        <DCArtboard id="overview"  label="Overview · Manager home"  width={W} height={H}><Frame screen="overview" role="Manager"/></DCArtboard>
+        <DCArtboard id="trends"    label="Trends & Analytics"        width={W} height={H}><Frame screen="trends"   role="Manager"/></DCArtboard>
+        <DCArtboard id="reports"   label="Reports archive · email preview" width={W} height={H}><Frame screen="reports"  role="Manager"/></DCArtboard>
+      </DCSection>
+
+      <DCSection id="supervisor" title="Supervisor — live floor" subtitle="Watch live, intervene on risk">
+        <DCArtboard id="live"      label="Live Monitoring · Supervisor home" width={W} height={H}><Frame screen="live"   role="Supervisor"/></DCArtboard>
+        <DCArtboard id="gating"    label="AI Response Gating · pre-send"     width={W} height={H}><Frame screen="gating" role="Supervisor"/></DCArtboard>
+        <DCArtboard id="agents"    label="Agents list"                width={W} height={H}><Frame screen="agents"     role="Supervisor"/></DCArtboard>
+        <DCArtboard id="scorecard" label="Agent scorecard · Mark V."  width={W} height={H}><Frame screen="scorecard"  role="Supervisor"/></DCArtboard>
+      </DCSection>
+
+      <DCSection id="qa" title="QA Analyst — review & validate" subtitle="HITL queue, overrides, sampling">
+        <DCArtboard id="queue"     label="Review Queue · Analyst home" width={W} height={H}><Frame screen="queue"     role="QA Analyst"/></DCArtboard>
+        <DCArtboard id="sampling"  label="QA Sampling"                width={W} height={H}><Frame screen="sampling"  role="QA Analyst"/></DCArtboard>
+        <DCArtboard id="framework" label="QA Framework (rubric)"      width={W} height={H}><Frame screen="framework" role="QA Analyst"/></DCArtboard>
+      </DCSection>
+
+      <DCSection id="ops" title="Settings & Audit" subtitle="Configuration, integrations, governance">
+        <DCArtboard id="alerts"        label="Alerts & Notifications" width={W} height={H}><Frame screen="alerts"        role="Manager"/></DCArtboard>
+        <DCArtboard id="integrations"  label="Integrations"           width={W} height={H}><Frame screen="integrations"  role="Manager"/></DCArtboard>
+        <DCArtboard id="audit"         label="Audit Log"              width={W} height={H}><Frame screen="audit"         role="Manager"/></DCArtboard>
+        <DCArtboard id="team"          label="Team & Permissions"     width={W} height={H}><Frame screen="team"          role="Manager"/></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Canvas/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies (no build, but just in case)
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Local env
+.env
+.env.local
+
+# Internal/preview artifacts from this project's tooling
+.thumbnail
+uploads/
+.design-canvas.state.json
