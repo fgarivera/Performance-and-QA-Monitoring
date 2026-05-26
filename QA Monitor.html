@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>QA Monitor — AI Performance & QA Monitoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+<style>
+  /* === Accent palette (tweakable) ===================================
+     The Tweaks panel rewrites --accent and we derive the rest with color-mix
+     so the whole UI re-tints from a single hex. */
+  :root{
+    --accent: #EC008C;
+    --accent-deep:    color-mix(in srgb, var(--accent) 75%, #000 25%);
+    --accent-deeper:  color-mix(in srgb, var(--accent) 60%, #000 40%);
+    --accent-tint:    color-mix(in srgb, var(--accent) 14%, #fff 86%);
+    --accent-border:  color-mix(in srgb, var(--accent) 28%, #fff 72%);
+  }
+  /* Tailwind JIT can't parse arbitrary-var + opacity (e.g. bg-[var(--x)]/40)
+     so we map those literal class names to color-mix here. */
+  [class~="bg-[var(--accent)]/70"]      { background-color: color-mix(in srgb, var(--accent) 70%, transparent) !important; }
+  [class~="bg-[var(--accent-tint)]/40"] { background-color: color-mix(in srgb, var(--accent-tint) 40%, transparent) !important; }
+  [class~="bg-[var(--accent-tint)]/30"] { background-color: color-mix(in srgb, var(--accent-tint) 30%, transparent) !important; }
+  [class~="bg-[var(--accent-tint)]/20"] { background-color: color-mix(in srgb, var(--accent-tint) 20%, transparent) !important; }
+
+  html,body,#root{height:100%;}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+  /* tabular nums helper */
+  .tabular-nums{font-variant-numeric:tabular-nums;}
+  /* pulsing red dot */
+  @keyframes pulseDot {0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.7)}50%{box-shadow:0 0 0 6px rgba(244,63,94,0)}}
+  .pulse-dot{animation:pulseDot 1.4s ease-out infinite;}
+  /* shimmer */
+  @keyframes shimmer {0%{background-position:-400px 0}100%{background-position:400px 0}}
+  .shimmer{background:linear-gradient(90deg,#f1f5f9 0,#e2e8f0 40%,#f1f5f9 80%);background-size:800px 100%;animation:shimmer 1.4s linear infinite;}
+  /* drawer slide */
+  @keyframes slideIn {from{transform:translateX(100%)}to{transform:translateX(0)}}
+  .drawer-in{animation:slideIn .22s ease-out;}
+  /* toast */
+  @keyframes toastIn {from{transform:translateY(-12px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .toast-in{animation:toastIn .18s ease-out;}
+  /* hide native scrollbar where useful */
+  .scroll-thin::-webkit-scrollbar{width:8px;height:8px}
+  .scroll-thin::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+  /* Recharts sparkline tweak */
+  .recharts-tooltip-wrapper{outline:none}
+</style>
+</head>
+<body class="bg-slate-50 text-slate-700">
+  <div id="root"></div>
+
+  <script>
+    // Silence Recharts 2.x defaultProps deprecation warning (React 18+) — library issue, not ours.
+    (function(){
+      const orig = console.error;
+      console.error = function(...args){
+        const m = (args[0] || "").toString();
+        if (m.indexOf("Support for defaultProps will be removed") !== -1) return;
+        return orig.apply(console, args);
+      };
+    })();
+  </script>
+
+  <script type="text/babel" src="src/data.jsx"></script>
+  <script type="text/babel" src="src/primitives.jsx"></script>
+  <script type="text/babel" src="src/shell.jsx"></script>
+  <script type="text/babel" src="src/screens-hero.jsx"></script>
+  <script type="text/babel" src="src/screens-detail.jsx"></script>
+  <script type="text/babel" src="src/screens-support.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>
