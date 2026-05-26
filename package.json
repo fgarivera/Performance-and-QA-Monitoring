@@ -1,0 +1,21 @@
+{
+  "name": "performance-and-qa-monitoring",
+  "version": "1.0.0",
+  "description": "AI Performance & QA Monitoring Dashboard",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build step required for static HTML'",
+    "lint": "echo 'No linter configured'"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "qa",
+    "monitoring",
+    "analytics"
+  ],
+  "author": "",
+  "license": "MIT"
+}
