@@ -233,6 +233,29 @@ const TopBar = ({ active, dateRange, setDateRange,
         ))}
       </div>
 
+      {/* Role switcher — moved left so toasts don't cover it */}
+      <div className="hidden lg:flex items-center bg-slate-50 rounded-md p-0.5 border border-slate-200">
+        {[
+          { r: "Admin",      home: "Integrations", desc: "Platform configuration & governance." },
+          { r: "Manager",    home: "Overview",     desc: "Team health, exports, coaching plans." },
+          { r: "Supervisor", home: "Live Monitoring", desc: "Watches live streams, intervenes on risk." },
+          { r: "QA Analyst", home: "Review Queue", desc: "Validates / overrides AI scores." },
+        ].map(o => {
+          const on = role === o.r;
+          return (
+            <button key={o.r}
+                    onClick={() => { setRole(o.r); addToast(`Now viewing as ${o.r}. Home: ${o.home}.`); }}
+                    title={o.desc}
+                    className={`text-xs px-2.5 py-1 rounded inline-flex items-center gap-1.5 transition ${
+                      on ? "bg-white shadow-sm text-slate-900 font-semibold" : "text-slate-500 hover:text-slate-700"
+                    }`}>
+              {on && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"/>}
+              {o.r}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex-1"/>
 
       {/* Date range */}
@@ -365,30 +388,6 @@ const TopBar = ({ active, dateRange, setDateRange,
             ))}
           </div>
         )}
-      </div>
-
-      {/* Role switcher */}
-      {/* Role switcher — segmented tabs (was a dropdown) */}
-      <div className="hidden lg:flex items-center bg-slate-50 rounded-md p-0.5 border border-slate-200">
-        {[
-          { r: "Admin",      home: "Integrations", desc: "Platform configuration & governance." },
-          { r: "Manager",    home: "Overview",     desc: "Team health, exports, coaching plans." },
-          { r: "Supervisor", home: "Live Monitoring", desc: "Watches live streams, intervenes on risk." },
-          { r: "QA Analyst", home: "Review Queue", desc: "Validates / overrides AI scores." },
-        ].map(o => {
-          const on = role === o.r;
-          return (
-            <button key={o.r}
-                    onClick={() => { setRole(o.r); addToast(`Now viewing as ${o.r}. Home: ${o.home}.`); }}
-                    title={o.desc}
-                    className={`text-xs px-2.5 py-1 rounded inline-flex items-center gap-1.5 transition ${
-                      on ? "bg-white shadow-sm text-slate-900 font-semibold" : "text-slate-500 hover:text-slate-700"
-                    }`}>
-              {on && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"/>}
-              {o.r}
-            </button>
-          );
-        })}
       </div>
 
       {/* Export */}
