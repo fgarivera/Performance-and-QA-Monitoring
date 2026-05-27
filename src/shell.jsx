@@ -38,6 +38,11 @@ const ROLE_DESCRIPTIONS = {
   "QA Analyst": { sub:"Review queue, validate scores",       color:"amber"  },
 };
 
+// Which screens actually show the date range / channel filters in the top bar.
+// Screens not listed here render the topbar without that control.
+const SHOWS_DATE_RANGE = ["overview","queue","agents","scorecard","trends","audit"];
+const SHOWS_CHANNELS   = ["overview","live","queue","gating","agents","scorecard","trends"];
+
 const BREADCRUMBS = {
   overview:    ["Monitor", "Overview"],
   live:        ["Monitor", "Live Monitoring"],
@@ -258,7 +263,8 @@ const TopBar = ({ active, dateRange, setDateRange,
 
       <div className="flex-1"/>
 
-      {/* Date range */}
+      {/* Date range — only on screens that show time-windowed data */}
+      {SHOWS_DATE_RANGE.includes(active) && (
       <div className="hidden md:flex items-center bg-slate-50 rounded-md p-0.5 border border-slate-200 relative" data-popover-anchor data-custom-range>
         {ranges.map(r => {
           const isCustom = r === "Custom";
@@ -344,8 +350,10 @@ const TopBar = ({ active, dateRange, setDateRange,
           </div>
         )}
       </div>
+      )}
 
-      {/* Channel chips */}
+      {/* Channel chips — only on screens that show interaction data */}
+      {SHOWS_CHANNELS.includes(active) && (
       <div className="hidden lg:flex items-center gap-1">
         {channelChips.map(c => {
           const on = channels.includes(c);
@@ -359,6 +367,7 @@ const TopBar = ({ active, dateRange, setDateRange,
           );
         })}
       </div>
+      )}
 
       {/* Notification */}
       <div className="relative">
