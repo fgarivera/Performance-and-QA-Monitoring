@@ -399,9 +399,26 @@ const ScreenHelp = ({ content }) => {
   );
 };
 
+// Channel filter helper — used by every screen that respects the top-bar channel chips.
+// channels: array from app state, e.g. ["All"] or ["Chat","Voice"]
+// channel: the row's channel field, e.g. "Chat"
+// Returns true if the row should be visible under the current filter.
+const matchesChannel = (channels, channel) =>
+  !channels || channels.length === 0 || channels.includes("All") || channels.includes(channel);
+
+// Derive a primary channel from an agent's team label, e.g. "Voice Team B" -> "Voice".
+const teamChannel = (team) => {
+  if (!team) return null;
+  if (team.includes("Chat"))  return "Chat";
+  if (team.includes("Voice")) return "Voice";
+  if (team.includes("Email")) return "Email";
+  return null;
+};
+
 Object.assign(window, {
   I, scoreColor, scoreClasses, colorForName, initials,
   ScorePill, RiskBadge, SentimentTag, ChannelIcon, AgentAvatar, TrendArrow,
   Sparkline, Stat, Card, Btn, Drawer, Modal, Toast, EmptyState, LoadingSkeleton, AIBadge,
   InfoTip, ScreenHelp,
+  matchesChannel, teamChannel,
 });

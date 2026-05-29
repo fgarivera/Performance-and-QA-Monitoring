@@ -3,9 +3,8 @@ const { useState: useStateSp, useMemo: useMemoSp } = React;
 const { ResponsiveContainer: RCS, LineChart: LCS, Line: LnS, AreaChart: ACS, Area: ArS, BarChart: BCS, Bar: BrS, XAxis: XS, YAxis: YS, Tooltip: TpS, CartesianGrid: CGS, Legend: LgS } = Recharts;
 
 // ===== SCREEN 6 — AGENTS LIST =====
-const AgentsListScreen = ({ openAgent }) => {
+const AgentsListScreen = ({ openAgent, channels }) => {
   const [team, setTeam] = useStateSp("All");
-  const [channel, setChannel] = useStateSp("All");
   const [scoreRange, setScoreRange] = useStateSp("All");
   const [sortKey, setSortKey] = useStateSp("score");
   const [sortDir, setSortDir] = useStateSp("desc");
@@ -13,6 +12,8 @@ const AgentsListScreen = ({ openAgent }) => {
   const teams = ["All", ...Array.from(new Set(window.ALL_AGENTS.map(a=>a.team)))];
   const filtered = useMemoSp(() => {
     let r = window.ALL_AGENTS.slice();
+    // Top-bar channel chips — agents are bucketed by their team's primary channel.
+    r = r.filter(a => window.matchesChannel(channels, window.teamChannel(a.team)));
     if (team !== "All") r = r.filter(a => a.team === team);
     if (scoreRange !== "All") {
       if (scoreRange === "90+") r = r.filter(a => a.score >= 90);
@@ -25,7 +26,7 @@ const AgentsListScreen = ({ openAgent }) => {
       return sortDir === "asc" ? va - vb : vb - va;
     });
     return r;
-  }, [team, channel, scoreRange, sortKey, sortDir]);
+  }, [team, channels, scoreRange, sortKey, sortDir]);
 
   const sortBy = (k) => { sortKey === k ? setSortDir(d => d==="asc"?"desc":"asc") : (setSortKey(k), setSortDir("desc")); };
 
@@ -43,9 +44,7 @@ const AgentsListScreen = ({ openAgent }) => {
           <select value={team} onChange={e=>setTeam(e.target.value)} className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white">
             {teams.map(t=><option key={t}>{t}</option>)}
           </select>
-          <select value={channel} onChange={e=>setChannel(e.target.value)} className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white">
-            {["All","Chat","Voice","Email"].map(t=><option key={t}>{t}</option>)}
-          </select>
+          {/* Channel filter is driven by the top-bar channel chips, not a local select. */}
           <select value={scoreRange} onChange={e=>setScoreRange(e.target.value)} className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white">
             {["All","90+","80-89","<80"].map(t=><option key={t}>{t}</option>)}
           </select>
@@ -1472,10 +1471,12 @@ const TeamScreen = () => (
 // the system. The screen has two tabs: a Tier-1 "Agent composer" view (the
 // primary surface — agents fix their own drafts in real time) and a Tier-2
 // "Supervisor escalations" view (the fallback for what's not auto-resolved).
-const GatingScreen = ({ addToast }) => {
+const GatingScreen = ({ addToast, channels }) => {
   const [tab, setTab] = useStateSp("supervisor"); // "agent" | "supervisor"
   const [drafts, setDrafts] = useStateSp(window.GATING_DRAFTS);
   const [stats, setStats]   = useStateSp(window.GATING_STATS);
+  // Apply the top-bar channel filter to held drafts.
+  const visibleDrafts = drafts.filter(d => window.matchesChannel(channels, d.channel));
 
   // Tick SLA timers every second so the countdown feels live
   useStateSp; // placeholder
@@ -1595,7 +1596,7 @@ const GatingScreen = ({ addToast }) => {
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-slate-200">
         {[
-          { key:"supervisor", label:"Supervisor escalations",sub:"Tier 2 · what agents didn't catch", count: drafts.length },
+          { key:"supervisor", label:"Supervisor escalations",sub:"Tier 2 · what agents didn't catch", count: visibleDrafts.length },
           { key:"agent",      label:"Agent view (preview)",  sub:"Tier 1 · what your agents see in their helpdesk" },
         ].map(t => {
           const on = tab === t.key;
@@ -1633,7 +1634,7 @@ const GatingScreen = ({ addToast }) => {
         />
       ) : (
         <SupervisorEscalations
-          drafts={drafts}
+          drafts={visibleDrafts}
           sevColor={sevColor}
           originPill={originPill}
           fallbackLabel={fallbackLabel}

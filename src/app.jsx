@@ -105,11 +105,11 @@ function App() {
 
   let screen = null;
   switch (active) {
-    case "overview":     screen = <window.OverviewScreen goTo={navTo} addToast={addToast} openAgent={openAgent} dateRange={dateRange} customStart={customStart} customEnd={customEnd}/>; break;
-    case "live":         screen = <window.LiveScreen openInteraction={openInteraction} addToast={addToast}/>; break;
-    case "queue":        screen = <window.QueueScreen openInteraction={openInteraction} queueRows={queueRows} addToast={addToast}/>; break;
-    case "gating":       screen = <window.GatingScreen addToast={addToast}/>; break;
-    case "agents":       screen = <window.AgentsListScreen openAgent={openAgent}/>; break;
+    case "overview":     screen = <window.OverviewScreen goTo={navTo} addToast={addToast} openAgent={openAgent} dateRange={dateRange} customStart={customStart} customEnd={customEnd} channels={channels}/>; break;
+    case "live":         screen = <window.LiveScreen openInteraction={openInteraction} addToast={addToast} channels={channels}/>; break;
+    case "queue":        screen = <window.QueueScreen openInteraction={openInteraction} queueRows={queueRows} addToast={addToast} channels={channels}/>; break;
+    case "gating":       screen = <window.GatingScreen addToast={addToast} channels={channels}/>; break;
+    case "agents":       screen = <window.AgentsListScreen openAgent={openAgent} channels={channels}/>; break;
     case "scorecard":    screen = <window.ScorecardScreen agent={scorecardAgent} openInteraction={openInteraction} addToast={addToast} setExportModal={setExportModal}/>; break;
     case "trends":       screen = <window.TrendsScreen/>; break;
     case "reports":      screen = <window.ReportsScreen addToast={addToast}/>; break;
