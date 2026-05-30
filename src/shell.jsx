@@ -41,7 +41,9 @@ const ROLE_DESCRIPTIONS = {
 // Which screens actually show the date range / channel filters in the top bar.
 // Screens not listed here render the topbar without that control.
 const SHOWS_DATE_RANGE = ["overview","queue","agents","scorecard","trends","audit"];
-const SHOWS_CHANNELS   = ["overview","live","queue","gating","agents","scorecard","trends"];
+// Scorecard is a single-agent view, and Trends already plots each channel
+// as a separate series, so the topbar channel chips don't make sense there.
+const SHOWS_CHANNELS   = ["overview","live","queue","gating","agents"];
 
 const BREADCRUMBS = {
   overview:    ["Monitor", "Overview"],

@@ -26,7 +26,7 @@ function rangeScale(dateRange, customStart, customEnd) {
 }
 const fmtInt = (n) => Math.round(n).toLocaleString();
 
-const OverviewScreen = ({ goTo, addToast, openAgent, dateRange = "Today", customStart, customEnd }) => {
+const OverviewScreen = ({ goTo, addToast, openAgent, dateRange = "Today", customStart, customEnd, channels }) => {
   const { days, factor } = rangeScale(dateRange, customStart, customEnd);
   const isToday = dateRange === "Today";
   const rangeLabel = (() => {
@@ -37,12 +37,28 @@ const OverviewScreen = ({ goTo, addToast, openAgent, dateRange = "Today", custom
     return "today";
   })();
 
-  // Hero stats — scale volumes; avg score and coverage stay flat but with a
+  // Channel filter — derive KPIs from only the selected channels so the
+  // hero stats actually move when the user picks Chat / Voice / Email.
+  const selectedBreakdown = window.CHANNEL_BREAKDOWN.filter(
+    c => window.matchesChannel(channels, c.channel)
+  );
+  const channelLabel = (!channels || channels.includes("All"))
+    ? "all channels"
+    : channels.join(" + ");
+  const baseVolume = selectedBreakdown.reduce((s, c) => s + c.volume, 0);
+  const baseFlagged = selectedBreakdown.reduce((s, c) => s + (c.volume * c.flag / 100), 0);
+  const weightedScore = baseVolume > 0
+    ? selectedBreakdown.reduce((s, c) => s + c.score * c.volume, 0) / baseVolume
+    : 0;
+
+  // Hero stats — scale volumes by date range factor; avg score gets a
   // small range-dependent drift so each range feels distinct.
-  const interactions = Math.round(3247 * factor);
-  const flagged      = Math.round(798 * factor);
-  const flagRate     = +(24.6 + (days >= 7 ? -1.4 : 0) + (days >= 30 ? -0.8 : 0)).toFixed(1);
-  const avgScore     = +(87.4 + (days >= 7 ? +0.4 : 0) + (days >= 30 ? +0.7 : 0)).toFixed(1);
+  const interactions = Math.round(baseVolume * factor);
+  const flagged      = Math.round(baseFlagged * factor);
+  const flagRate     = baseVolume > 0
+    ? +((baseFlagged / baseVolume * 100) + (days >= 7 ? -1.4 : 0) + (days >= 30 ? -0.8 : 0)).toFixed(1)
+    : 0;
+  const avgScore     = +((weightedScore || 0) + (days >= 7 ? +0.4 : 0) + (days >= 30 ? +0.7 : 0)).toFixed(1);
   const heroStats = [
     { ...window.KPI_HERO[0], value: fmtInt(interactions), caption: rangeLabel,
       delta: isToday ? "+12.0%" : (days >= 30 ? "+8.4% vs prior period" : "+9.7% vs prior period") },
@@ -57,12 +73,15 @@ const OverviewScreen = ({ goTo, addToast, openAgent, dateRange = "Today", custom
       up: !isToday },
   ];
 
-  // Donut + channel breakdown + top issues all scale by factor.
-  const donut    = window.HIGH_RISK_DONUT.map(d => ({ ...d, value: Math.round(d.value * factor) }));
+  // Donut + channel breakdown + top issues scale by both date-range factor
+  // and channel-share so they stay consistent with the hero KPIs above.
+  const totalVolume = window.CHANNEL_BREAKDOWN.reduce((s, c) => s + c.volume, 0);
+  const channelShare = totalVolume > 0 ? baseVolume / totalVolume : 1;
+  const donut    = window.HIGH_RISK_DONUT.map(d => ({ ...d, value: Math.round(d.value * factor * channelShare) }));
   const donutTotal = donut.reduce((s, d) => s + d.value, 0);
-  const channels = window.CHANNEL_BREAKDOWN.map(c => ({ ...c, volume: Math.round(c.volume * factor) }));
-  const channelMax = Math.max(...channels.map(c => c.volume));
-  const topIssues = window.TOP_ISSUES.map(i => ({ ...i, count: Math.round(i.count * factor) }));
+  const channelRows = selectedBreakdown.map(c => ({ ...c, volume: Math.round(c.volume * factor) }));
+  const channelMax = channelRows.length > 0 ? Math.max(...channelRows.map(c => c.volume)) : 1;
+  const topIssues = window.TOP_ISSUES.map(i => ({ ...i, count: Math.round(i.count * factor * channelShare) }));
 
   return (
     <div className="space-y-6">
@@ -108,9 +127,11 @@ const OverviewScreen = ({ goTo, addToast, openAgent, dateRange = "Today", custom
         </window.Card>
 
         {/* Channel breakdown */}
-        <window.Card title="Channel breakdown" action={<span className="text-xs text-slate-500">volume · avg score</span>}>
+        <window.Card title="Channel breakdown" action={<span className="text-xs text-slate-500">{channelLabel} · volume · avg score</span>}>
           <div className="space-y-4 pt-1">
-            {channels.map(c => (
+            {channelRows.length === 0 ? (
+              <div className="text-xs text-slate-500 py-6 text-center">No channels selected.</div>
+            ) : channelRows.map(c => (
               <div key={c.channel}>
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
@@ -232,9 +253,12 @@ const OverviewScreen = ({ goTo, addToast, openAgent, dateRange = "Today", custom
 };
 
 // ===== SCREEN 2 — LIVE MONITORING (Supervisor) =====
-const LiveScreen = ({ openInteraction, addToast }) => {
+const LiveScreen = ({ openInteraction, addToast, channels }) => {
   const [convos, setConvos] = useStateH(window.LIVE_CONVOS);
   const [alerts, setAlerts] = useStateH(window.ACTIVE_ALERTS);
+  // Apply the top-bar channel filter to both lists.
+  const visibleConvos = convos.filter(c => window.matchesChannel(channels, c.channel));
+  const visibleAlerts = alerts.filter(a => window.matchesChannel(channels, a.channel));
 
   // Re-shuffle every 5s for "live" feel
   useEffectH(() => {
@@ -322,10 +346,12 @@ const LiveScreen = ({ openInteraction, addToast }) => {
         <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <h3 className="text-base font-semibold text-slate-900">Live conversation stream</h3>
-            <div className="text-xs text-slate-500">{convos.length} active · auto-refresh 5s</div>
+            <div className="text-xs text-slate-500">{visibleConvos.length} active · auto-refresh 5s</div>
           </div>
           <div className="divide-y divide-slate-100 max-h-[640px] overflow-y-auto scroll-thin">
-            {convos.map(c => (
+            {visibleConvos.length === 0 ? (
+              <window.EmptyState icon={window.I.activity} title="No live conversations" sub="No active streams match the current channel filter."/>
+            ) : visibleConvos.map(c => (
               <button key={c.id} onClick={()=>openInteraction(c, "live")}
                       className={`w-full px-4 py-3 grid grid-cols-12 gap-3 items-center hover:bg-slate-50 text-left border-l-4 ${riskBorder[c.risk]}`}>
                 <div className="col-span-3 flex items-center gap-2 min-w-0">
@@ -365,13 +391,13 @@ const LiveScreen = ({ openInteraction, addToast }) => {
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <h3 className="text-base font-semibold text-slate-900">Active alerts</h3>
-            <span className="text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">{alerts.filter(a=>!a.ack).length} open</span>
+            <span className="text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">{visibleAlerts.filter(a=>!a.ack).length} open</span>
           </div>
-          {alerts.length === 0 ? (
-            <window.EmptyState icon={window.I.check} title="No active alerts" sub="All risks within thresholds. Great work."/>
+          {visibleAlerts.length === 0 ? (
+            <window.EmptyState icon={window.I.check} title="No active alerts" sub={alerts.length === 0 ? "All risks within thresholds. Great work." : "No alerts match the current channel filter."}/>
           ) : (
             <div className="divide-y divide-slate-100 max-h-[640px] overflow-y-auto scroll-thin">
-              {alerts.map(a => {
+              {visibleAlerts.map(a => {
                 const sevColor = {
                   Critical: "border-l-rose-500 bg-rose-50/40",
                   High:     "border-l-orange-500 bg-orange-50/30",
@@ -405,7 +431,7 @@ const LiveScreen = ({ openInteraction, addToast }) => {
       </div>
 
       {/* Heatmap */}
-      <window.Card title="Flag intensity — last 24 hours" action={<span className="text-xs text-slate-500">hour-by-hour, all channels</span>}>
+      <window.Card title="Flag intensity — last 24 hours" action={<span className="text-xs text-slate-500">hour-by-hour, {(!channels || channels.includes("All")) ? "all channels" : channels.join(" + ")}</span>}>
         <div className="flex items-end gap-1 pt-2">
           {window.HEATMAP_24H.map(h => {
             const opacity = 0.15 + (h.value / 10) * 0.85;
@@ -428,13 +454,15 @@ const LiveScreen = ({ openInteraction, addToast }) => {
 };
 
 // ===== SCREEN 3 — REVIEW QUEUE =====
-const QueueScreen = ({ openInteraction, queueRows, addToast }) => {
+const QueueScreen = ({ openInteraction, queueRows, addToast, channels }) => {
   const [filter, setFilter] = useStateH("all");
   const [sort, setSort]     = useStateH("Priority");
   const [selected, setSelected] = useStateH(new Set());
 
   const filtered = useMemoH(() => {
     let r = queueRows.slice();
+    // Top-bar channel filter (Chat/Email/Voice/All).
+    r = r.filter(x => window.matchesChannel(channels, x.channel));
     if (filter !== "all") r = r.filter(x => x.reasonKey === filter);
     if (sort === "Newest") r.sort((a,b) => a.id < b.id ? 1 : -1);
     if (sort === "Oldest") r.sort((a,b) => a.id > b.id ? 1 : -1);
@@ -445,7 +473,7 @@ const QueueScreen = ({ openInteraction, queueRows, addToast }) => {
     if (sort === "By agent") r.sort((a,b) => a.agent.localeCompare(b.agent));
     if (sort === "By channel") r.sort((a,b) => a.channel.localeCompare(b.channel));
     return r;
-  }, [queueRows, filter, sort]);
+  }, [queueRows, filter, sort, channels]);
 
   const toggleSel = (id) => setSelected(prev => {
     const n = new Set(prev);
