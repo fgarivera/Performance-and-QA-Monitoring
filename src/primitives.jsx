@@ -246,9 +246,9 @@ const Modal = ({ open, onClose, title, children, footer, width = 520 }) => {
 };
 
 const Toast = ({ items, dismiss }) => (
-  <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2">
+  <div className="fixed top-16 right-4 z-[60] flex flex-col gap-2">
     {items.map(t => (
-      <div key={t.id} className="toast-in min-w-[260px] max-w-[400px] bg-slate-900 text-white text-sm rounded-lg shadow-lg px-4 py-3 flex items-start gap-2">
+      <div key={t.id} className="toast-in min-w-[260px] max-w-[400px] bg-slate-900/90 backdrop-blur-sm text-white text-sm rounded-lg shadow-lg px-4 py-3 flex items-start gap-2">
         {t.kind === "error" ? <I.alert className="w-4 h-4 text-rose-400 mt-0.5"/> : <I.check className="w-4 h-4 text-emerald-400 mt-0.5"/>}
         <div className="flex-1">{t.text}</div>
         <button className="text-slate-400 hover:text-white" onClick={() => dismiss(t.id)}><I.x className="w-3.5 h-3.5"/></button>
