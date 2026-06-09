@@ -21,7 +21,7 @@ const NAV = [
   { group: "QA Operations", items: [
     { key: "sampling",  label: "QA Sampling",     icon: window.I.shuffle, roleFor: ["QA Analyst","Manager","Admin"] },
     { key: "framework", label: "QA Framework",    icon: window.I.scale,   roleFor: ["Manager","Admin"] },
-    { key: "knowledge", label: "Knowledge Base",  icon: window.I.reports, roleFor: ["Manager","Admin"] },
+    { key: "knowledge", label: "Intelligence Center", icon: window.I.reports, roleFor: ["Manager","Admin"] },
     { key: "audit",     label: "Audit Log",       icon: window.I.audit,   roleFor: ["Admin","QA Analyst"] },
   ]},
   { group: "Settings", items: [
@@ -56,7 +56,7 @@ const BREADCRUMBS = {
   reports:     ["Performance", "Reports"],
   sampling:    ["QA Operations", "QA Sampling"],
   framework:   ["QA Operations", "QA Framework"],
-  knowledge:   ["QA Operations", "Knowledge Base"],
+  knowledge:   ["QA Operations", "Intelligence Center"],
   audit:       ["QA Operations", "Audit Log"],
   integrations:["Settings", "Integrations"],
   alerts:      ["Settings", "Alerts & Notifications"],

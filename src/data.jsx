@@ -986,8 +986,8 @@ const SCREEN_HELP = {
     related: ["Review Queue"],
   },
   knowledge: {
-    title: "Knowledge Base",
-    purpose: "The SOPs, policies, and scripts the AI evaluates interactions against. Edit them here; the AI re-trains automatically.",
+    title: "Intelligence Center",
+    purpose: "Central hub for everything the QA system knows, how it scores, which AI agents are active, and the rules it operates under. Config changes propagate within 60 seconds.",
     who: "QA Lead — owns the rubric. Manager — reviews policy updates. Admin — manages access.",
     actions: [
       "Browse documents by category",
@@ -1086,6 +1086,17 @@ const SCREEN_HELP = {
   },
 };
 
+const QA_IC_MODULES = [
+  { id:'agents',       icon:'bot',      title:'AI Agents',              sub:'8 agents running the evaluation pipeline',       stat:'3,247 evals today · all healthy', tone:'violet' },
+  { id:'models',       icon:'sparkle',  title:'Evaluation Models',      sub:'LLMs powering interaction scoring',              stat:'GPT-4o primary · 0.4% fallback',  tone:'amber'  },
+  { id:'rubric',       icon:'scale',    title:'QA Rubric & Scoring',    sub:'Weights, thresholds, posture',                   stat:'Balanced · 5 categories',         tone:'blue'   },
+  { id:'knowledge',    icon:'reports',  title:'Knowledge Base',         sub:'SOPs and policies AI evaluates against',         stat:'8 docs · 412 refs today',         tone:'green'  },
+  { id:'integrations', icon:'plug',     title:'Integrations',           sub:'CRM, telephony, chat, email connectors',        stat:'5 connected · 1 needs attention', tone:'teal'   },
+  { id:'alerts',       icon:'bell',     title:'Alert Rules',            sub:'Slack and email notification triggers',          stat:'4 rules · 3 triggered today',     tone:'pink'   },
+  { id:'sampling',     icon:'shuffle',  title:'QA Sampling',            sub:'Random Message Selector config',                stat:'8% daily · stratified by channel',tone:'sky'    },
+  { id:'compliance',   icon:'shield',   title:'Compliance',             sub:'Regulatory frameworks and data governance',     stat:'PH DPA · GDPR · 0 violations',    tone:'rose'   },
+];
+
 // expose globally
 Object.assign(window, {
   TODAY_LABEL, WORKSPACES, KPI_HERO, HIGH_RISK_DONUT, CHANNEL_BREAKDOWN, TOP_ISSUES,
@@ -1100,6 +1111,7 @@ Object.assign(window, {
   GATING_STATS, GATING_DRAFTS, GATING_RECENT, AGREEMENT_TREND, FALLBACK_DEFAULTS,
   SCREEN_HELP,
   KB_DOCUMENTS, KB_CATEGORIES, KB_RECENT_USAGE,
+  QA_IC_MODULES,
   COACHING_SESSIONS, COACHING_IMPACT,
   CSAT_DAILY, CSAT_AGENT_SCATTER, CSAT_SUMMARY,
   DOW_HEATMAP, TREND_ANOMALIES,

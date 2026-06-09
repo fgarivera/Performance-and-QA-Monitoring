@@ -633,7 +633,7 @@ const SamplingScreen = ({ addToast }) => {
 };
 
 // ===== SCREEN 10 — QA FRAMEWORK =====
-const FrameworkScreen = ({ addToast }) => {
+const FrameworkScreen = ({ addToast, embedded = false }) => {
   const [cats, setCats] = useStateSp([
     { name:"Communication / Tone",     w:20, desc:"Greeting, empathy, language, professionalism." },
     { name:"SOP Adherence",            w:25, desc:"Process steps, scripts, escalation routing." },
@@ -1141,7 +1141,7 @@ const FrameworkScreen = ({ addToast }) => {
         </div>
       </window.Card>
 
-      <div className="fixed bottom-0 left-[240px] right-0 bg-white/95 backdrop-blur border-t border-slate-200 px-6 py-3 flex items-center gap-3 z-20">
+      <div className={embedded ? "mt-4 bg-white/95 backdrop-blur border-t border-slate-200 px-6 py-3 flex items-center gap-3 rounded-b-xl" : "fixed bottom-0 left-[240px] right-0 bg-white/95 backdrop-blur border-t border-slate-200 px-6 py-3 flex items-center gap-3 z-20"}>
         <span className="text-[11px] text-slate-500">Last saved 2h ago by Maria Dela Cruz</span>
         <div className="flex-1"/>
         <window.Btn kind="ghost" size="md">Discard</window.Btn>
@@ -2130,4 +2130,301 @@ const KnowledgeBaseScreen = ({ addToast }) => {
   );
 };
 
-Object.assign(window, { AgentsListScreen, TrendsScreen, ReportsScreen, SamplingScreen, FrameworkScreen, AlertsScreen, IntegrationsScreen, AuditScreen, TeamScreen, GatingScreen, AgentComposerView, SupervisorEscalations, KnowledgeBaseScreen });
+// ===== INTELLIGENCE CENTER =====
+
+const TONE_CLASSES = {
+  violet: { box: "bg-violet-50 text-violet-700", dot: "bg-violet-500" },
+  amber:  { box: "bg-amber-50 text-amber-700",   dot: "bg-amber-500"  },
+  blue:   { box: "bg-sky-50 text-sky-700",        dot: "bg-sky-500"    },
+  green:  { box: "bg-emerald-50 text-emerald-700",dot: "bg-emerald-500"},
+  teal:   { box: "bg-teal-50 text-teal-700",      dot: "bg-teal-500"   },
+  pink:   { box: "bg-rose-50 text-rose-700",      dot: "bg-rose-500"   },
+  sky:    { box: "bg-sky-50 text-sky-700",        dot: "bg-sky-500"    },
+  rose:   { box: "bg-rose-50 text-rose-700",      dot: "bg-rose-500"   },
+  slate:  { box: "bg-slate-100 text-slate-700",   dot: "bg-slate-500"  },
+};
+
+const IC_ICONS = {
+  bot:     () => <window.I.bot     className="w-4 h-4"/>,
+  sparkle: () => <window.I.sparkle className="w-4 h-4"/>,
+  scale:   () => <window.I.scale   className="w-4 h-4"/>,
+  reports: () => <window.I.reports className="w-4 h-4"/>,
+  plug:    () => <window.I.plug    className="w-4 h-4"/>,
+  bell:    () => <window.I.bell    className="w-4 h-4"/>,
+  shuffle: () => <window.I.shuffle className="w-4 h-4"/>,
+  shield:  () => <window.I.shield  className="w-4 h-4"/>,
+};
+
+const ICRailItem = ({ mod, active, onClick }) => {
+  const tc = TONE_CLASSES[mod.tone] || TONE_CLASSES.slate;
+  const Icon = IC_ICONS[mod.icon] || IC_ICONS.reports;
+  return (
+    <button onClick={onClick}
+            className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition ${
+              active ? "bg-[var(--accent-tint)]/40 border border-[var(--accent-border)]" : "hover:bg-slate-50 border border-transparent"
+            }`}>
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${tc.box}`}>
+        <Icon />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-semibold text-slate-900 leading-snug">{mod.title}</div>
+        <div className="text-[11px] text-slate-500 leading-snug truncate">{mod.sub}</div>
+        <div className="text-[10px] font-mono text-slate-400 mt-0.5 truncate">{mod.stat}</div>
+      </div>
+    </button>
+  );
+};
+
+// ── ICAgentsPane ─────────────────────────────────────────────────────────────
+const ICAgentsPane = () => {
+  const AGENTS_DATA = [
+    { name:'Content Quality Checker',               abbr:'CQC',   desc:'Evaluates tone, SOP adherence, and quality issues pre- and post-send.',         evalsToday: 3247, status:'Healthy', lastRun:'2s ago',  color:'violet' },
+    { name:'AI Message Rating Agent',               abbr:'AMRA',  desc:'Scores interactions using QA criteria and triggers alerts.',                    evalsToday: 3247, status:'Healthy', lastRun:'2s ago',  color:'violet' },
+    { name:'Sentiment Analysis Agent',              abbr:'SAA',   desc:'Classifies sentiment and detects frustration / escalation signals.',            evalsToday: 3247, status:'Healthy', lastRun:'3s ago',  color:'rose'   },
+    { name:'Random Message Selector',               abbr:'RMS',   desc:'Generates unbiased, representative QA audit samples.',                         evalsToday: 162,  status:'Healthy', lastRun:'09:14',   color:'sky'    },
+    { name:'Employee Performance Evaluation Agent', abbr:'EPEA',  desc:'Analyzes QA results per agent and generates coaching recommendations.',        evalsToday: 34,   status:'Healthy', lastRun:'15:02',   color:'emerald'},
+    { name:'Operator Rating Agent',                 abbr:'ORA',   desc:'Produces individual scorecards and cutoff-based performance reports.',          evalsToday: 34,   status:'Healthy', lastRun:'15:02',   color:'emerald'},
+    { name:'HITL Control & Validation Agent',       abbr:'HITL',  desc:'Routes flagged interactions to QA reviewers and captures override feedback.',  evalsToday: 798,  status:'Healthy', lastRun:'4s ago',  color:'amber'  },
+    { name:'Interaction Logging & Reporting Agent', abbr:'ILRA',  desc:'Logs all evaluations, generates daily summaries, and maintains audit trail.',  evalsToday: 3247, status:'Healthy', lastRun:'1m ago',  color:'slate'  },
+  ];
+  const KPI_STRIP = [
+    { label:"Total evals today", value:"3,247" },
+    { label:"Agents active",     value:"8 / 8" },
+    { label:"Avg confidence",    value:"87.4%" },
+    { label:"HITL routed",       value:"798"   },
+  ];
+  return (
+    <div className="space-y-4">
+      {/* Summary strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {KPI_STRIP.map(k => (
+          <div key={k.label} className="rounded-xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">{k.label}</div>
+            <div className="text-xl font-semibold tabular-nums text-slate-900">{k.value}</div>
+          </div>
+        ))}
+      </div>
+      {/* Agent grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3">
+        {AGENTS_DATA.map(a => {
+          const tc = TONE_CLASSES[a.color] || TONE_CLASSES.slate;
+          return (
+            <div key={a.abbr} className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 flex flex-col">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-[11px] font-bold ${tc.box}`}>{a.abbr}</div>
+                  <div className="text-[13px] font-semibold text-slate-900 leading-snug truncate">{a.name}</div>
+                </div>
+                <span className="flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200">{a.status}</span>
+              </div>
+              <p className="text-[11.5px] text-slate-600 leading-relaxed flex-1">{a.desc}</p>
+              <div className="border-t border-slate-100 mt-3 pt-3 flex items-center justify-between">
+                <span className="text-[11px] tabular-nums text-slate-500">Evals today: <span className="font-semibold text-slate-700">{a.evalsToday.toLocaleString()}</span></span>
+                <span className="text-[11px] tabular-nums text-slate-400">Last run: {a.lastRun}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ── ICModelsPane ──────────────────────────────────────────────────────────────
+const ICModelsPane = () => {
+  const MODELS = [
+    { id:'gpt4o',      name:'GPT-4o',          provider:'OpenAI',    tier:'flagship', quality:96, speed:88, cost:72, latency:'420ms', pricing:'$2.50/1M',   context:'128k',  badge:'PRIMARY',   desc:'OpenAI flagship. Best-in-class reasoning and instruction-following. Used for all QA evaluations, tone analysis, and compliance checks.' },
+    { id:'gpt4omini',  name:'GPT-4o mini',      provider:'OpenAI',    tier:'fast',     quality:84, speed:96, cost:96, latency:'180ms', pricing:'$0.15/1M',   context:'128k',  badge:null,        desc:'Fast and cost-efficient. Used for pre-screening and low-confidence re-runs where speed matters more than depth.' },
+    { id:'sonnet',     name:'Claude 3.5 Sonnet',provider:'Anthropic', tier:'flagship', quality:95, speed:82, cost:68, latency:'510ms', pricing:'$3.00/1M',   context:'200k',  badge:'FALLBACK',  desc:'Active fallback when GPT-4o is rate-limited or unavailable. Near-identical QA output quality with a longer context window.' },
+    { id:'haiku',      name:'Claude 3 Haiku',   provider:'Anthropic', tier:'fast',     quality:82, speed:95, cost:94, latency:'200ms', pricing:'$0.25/1M',   context:'200k',  badge:null,        desc:'Lightweight Anthropic model. Candidate for fast pre-pass if sampling volume increases.' },
+    { id:'llama',      name:'Llama 3.1 70B',    provider:'Meta',      tier:'self-hosted', quality:88, speed:86, cost:90, latency:'380ms', pricing:'Fixed $0.40/hr', context:'128k', badge:null,   desc:'Self-hosted on-premises deployment. Zero data egress. Considered for regulated-data evaluations under PH DPA and GDPR.' },
+  ];
+  const SAVED_PRIMARY = 'gpt4o';
+  const SAVED_FALLBACK = 'sonnet';
+  const [selected, setSelected] = useStateSp(MODELS[0]);
+  const [fallback, setFallback] = useStateSp(SAVED_FALLBACK);
+  const hasUnsaved = fallback !== SAVED_FALLBACK;
+  const BAR_LABELS = ['quality','speed','cost'];
+
+  const badgeCls = (b) => b === 'PRIMARY' ? 'bg-[var(--accent-tint)] text-[var(--accent-deep)] border-[var(--accent-border)]'
+                        : b === 'FALLBACK' ? 'bg-amber-50 text-amber-700 border-amber-200' : '';
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
+      {/* Left: model list */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        {/* Banner */}
+        <div className="px-4 py-3 border-b border-slate-100 bg-[var(--accent-tint)]/20 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[var(--accent-tint)] flex items-center justify-center">
+            <window.I.sparkle className="w-4 h-4 text-[var(--accent-deep)]"/>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-slate-900">GPT-4o <span className="text-[10px] font-normal text-slate-500">· Currently powering all evaluations</span></div>
+            <div className="text-[11px] text-slate-500">OpenAI · 420ms avg · $2.50/1M tokens · fallback rate 0.4%</div>
+          </div>
+        </div>
+        {/* Model rows */}
+        <div className="divide-y divide-slate-100 flex-1">
+          {MODELS.map(m => {
+            const isSel = selected.id === m.id;
+            const isFallbackModel = fallback === m.id;
+            return (
+              <div key={m.id} onClick={()=>setSelected(m)}
+                   className={`px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50 ${isSel ? "bg-[var(--accent-tint)]/20" : ""}`}>
+                <input type="radio" readOnly checked={m.id === SAVED_PRIMARY} className="accent-[var(--accent)] flex-shrink-0"/>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[13px] font-semibold text-slate-900">{m.name}</span>
+                    <span className="text-[11px] text-slate-500">{m.provider}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-500">{m.tier}</span>
+                    {m.badge && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeCls(m.badge)}`}>{m.badge === 'PRIMARY' ? 'Active primary' : 'Active fallback'}</span>}
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">{m.latency} · {m.pricing} · {m.context} ctx</div>
+                </div>
+                {m.id !== SAVED_PRIMARY && (
+                  <button onClick={(e)=>{ e.stopPropagation(); setFallback(m.id); }}
+                          className={`text-[11px] px-2 py-1 rounded border transition flex-shrink-0 ${isFallbackModel ? "bg-amber-50 text-amber-700 border-amber-200 font-semibold" : "bg-white text-slate-500 border-slate-200 hover:border-slate-400"}`}>
+                    {isFallbackModel ? "Set as fallback ✓" : "Set as fallback"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {/* Unsaved changes bar — inline, not fixed */}
+        {hasUnsaved && (
+          <div className="border-t border-amber-200 bg-amber-50 px-4 py-2.5 flex items-center gap-3">
+            <window.I.alert className="w-4 h-4 text-amber-600 flex-shrink-0"/>
+            <span className="text-[12px] text-amber-800 font-medium flex-1">Unsaved model changes</span>
+            <button onClick={()=>setFallback(SAVED_FALLBACK)} className="text-[11px] px-2 py-1 rounded border border-amber-300 text-amber-700 hover:bg-amber-100">Discard</button>
+            <button onClick={()=>setFallback(fallback)} className="text-[11px] px-2.5 py-1 rounded bg-amber-600 text-white font-semibold hover:bg-amber-700">Save changes</button>
+          </div>
+        )}
+      </div>
+
+      {/* Right: detail panel */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 flex flex-col gap-3">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-deep)] mb-1">{selected.provider} · {selected.tier}</div>
+          <div className="text-base font-semibold text-slate-900">{selected.name}</div>
+          <p className="text-[12px] text-slate-600 leading-relaxed mt-1">{selected.desc}</p>
+        </div>
+        <div className="space-y-2">
+          {BAR_LABELS.map(k => (
+            <div key={k}>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[11px] font-medium text-slate-600 capitalize">{k}</span>
+                <span className="text-[11px] tabular-nums text-slate-500">{selected[k]}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-slate-100">
+                <div className="h-1.5 rounded-full bg-[var(--accent)] transition-all" style={{width: `${selected[k]}%`}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          {[
+            { label:"Latency",  val: selected.latency  },
+            { label:"Pricing",  val: selected.pricing  },
+            { label:"Context",  val: selected.context  },
+            { label:"Status",   val: selected.badge ? (selected.badge === 'PRIMARY' ? 'Active primary' : 'Active fallback') : 'Available' },
+          ].map(r => (
+            <div key={r.label} className="rounded-md border border-slate-100 bg-slate-50 px-2 py-1.5">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide">{r.label}</div>
+              <div className="font-semibold text-slate-700 mt-0.5">{r.val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── ICCompliancePane ───────────────────────────────────────────────────────────
+const ICCompliancePane = () => {
+  const FRAMEWORKS = [
+    { flag:'🇵🇭', name:'PH Data Privacy Act',      desc:'DPA consent, retention, breach notification',          status:'Compliant', detail:'0 violations (30d)'       },
+    { flag:'🇪🇺', name:'GDPR',                      desc:'Lawful basis, right-to-delete, data residency',         status:'Compliant', detail:'12 deletions handled'     },
+    { flag:'🇺🇸', name:'TCPA',                       desc:'DNC scrub pre-call, curfew enforcement',               status:'Compliant', detail:'0 violations (90d)'       },
+    { flag:'🏦', name:'BSP Fintech Guidelines',      desc:'Required disclosures for financial queries',            status:'Compliant', detail:'audit Q1 passed'          },
+  ];
+  const GOV_TILES = [
+    { label:'AI disclosure rate',    value:'100%',      note:'first 5 seconds of every interaction'  },
+    { label:'DNC scrub coverage',    value:'100%',      note:'pre-evaluation, all channels'          },
+    { label:'Data retention policy', value:'7 years',   note:'audit-locked, immutable'               },
+    { label:'Last compliance audit', value:'Mar 2026',  note:'next scheduled: Jun 2026'              },
+  ];
+  return (
+    <div className="space-y-4">
+      {/* Active frameworks */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-slate-100">
+          <h3 className="text-sm font-semibold text-slate-900">Active frameworks</h3>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {FRAMEWORKS.map(f => (
+            <div key={f.name} className="px-4 py-3 flex items-center gap-3">
+              <span className="text-xl flex-shrink-0">{f.flag}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold text-slate-900">{f.name}</div>
+                <div className="text-[11px] text-slate-500">{f.desc}</div>
+              </div>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 flex-shrink-0">{f.status}</span>
+              <span className="text-[11px] text-slate-400 text-right flex-shrink-0 w-36">{f.detail}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Governance KPI tiles */}
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900 mb-3">Consent &amp; data governance</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {GOV_TILES.map(t => (
+            <div key={t.label} className="rounded-xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">{t.label}</div>
+              <div className="text-xl font-semibold tabular-nums text-slate-900">{t.value}</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">{t.note}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── ICModulePane dispatcher ───────────────────────────────────────────────────
+const ICModulePane = ({ moduleId, addToast }) => {
+  if (moduleId === 'agents')       return <ICAgentsPane />;
+  if (moduleId === 'models')       return <ICModelsPane />;
+  if (moduleId === 'rubric')       return <FrameworkScreen addToast={addToast} embedded={true} />;
+  if (moduleId === 'knowledge')    return <KnowledgeBaseScreen addToast={addToast} />;
+  if (moduleId === 'integrations') return <IntegrationsScreen addToast={addToast} />;
+  if (moduleId === 'alerts')       return <AlertsScreen addToast={addToast} />;
+  if (moduleId === 'sampling')     return <SamplingScreen addToast={addToast} />;
+  if (moduleId === 'compliance')   return <ICCompliancePane />;
+  return null;
+};
+
+// ── IntelligenceCenterScreen ─────────────────────────────────────────────────
+const IntelligenceCenterScreen = ({ addToast }) => {
+  const [activeModule, setActiveModule] = useStateSp('agents');
+  return (
+    <div className="flex gap-4 min-h-0">
+      {/* Left rail */}
+      <aside className="w-[260px] flex-shrink-0">
+        <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Modules</div>
+        <div className="space-y-1">
+          {window.QA_IC_MODULES.map(mod => (
+            <ICRailItem key={mod.id} mod={mod} active={activeModule === mod.id} onClick={() => setActiveModule(mod.id)} />
+          ))}
+        </div>
+      </aside>
+      {/* Right pane */}
+      <div className="flex-1 min-w-0">
+        <ICModulePane moduleId={activeModule} addToast={addToast} />
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { AgentsListScreen, TrendsScreen, ReportsScreen, SamplingScreen, FrameworkScreen, AlertsScreen, IntegrationsScreen, AuditScreen, TeamScreen, GatingScreen, AgentComposerView, SupervisorEscalations, KnowledgeBaseScreen, IntelligenceCenterScreen, ICAgentsPane, ICModelsPane, ICCompliancePane, ICModulePane });

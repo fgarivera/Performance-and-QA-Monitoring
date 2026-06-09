@@ -115,7 +115,7 @@ function App() {
     case "reports":      screen = <window.ReportsScreen addToast={addToast}/>; break;
     case "sampling":     screen = <window.SamplingScreen addToast={addToast}/>; break;
     case "framework":    screen = <window.FrameworkScreen addToast={addToast}/>; break;
-    case "knowledge":    screen = <window.KnowledgeBaseScreen addToast={addToast}/>; break;
+    case "knowledge":    screen = <window.IntelligenceCenterScreen addToast={addToast}/>; break;
     case "alerts":       screen = <window.AlertsScreen addToast={addToast}/>; break;
     case "integrations": screen = <window.IntegrationsScreen addToast={addToast}/>; break;
     case "audit":        screen = <window.AuditScreen/>; break;
@@ -129,7 +129,7 @@ function App() {
     gating:"AI Response Gating",
     agents:"Agents", scorecard:scorecardAgent.name, trends:"Trends & Analytics", reports:"Reports",
     sampling:"QA Sampling", framework:"QA Framework",
-    knowledge:"Knowledge Base",
+    knowledge:"Intelligence Center",
     alerts:"Alerts & Notifications",
     integrations:"Integrations", audit:"Audit Log", team:"Team & Permissions"
   }[active];
@@ -151,7 +151,7 @@ function App() {
     reports:"Daily and weekly report archive",
     sampling:"Configure the Random Message Selector",
     framework:"Edit categories, weights, and thresholds for the AI scorecard",
-    knowledge:`${window.KB_DOCUMENTS.length} SOPs, policies, and scripts the AI evaluates against`,
+    knowledge:"AI agents, evaluation models, rubric, integrations, and QA ops config",
     alerts:"Slack and email notifications configured by trigger",
     integrations:"CRM, telephony, chat, and messaging connectors",
     audit:"Immutable record of every evaluation, override, and alert",
@@ -251,6 +251,7 @@ function App() {
       </window.Modal>
 
       <window.Toast items={toasts} dismiss={dismissToast}/>
+      {window.AssistantChat && <window.AssistantChat />}
 
       <window.TweaksPanel title="Tweaks">
         <window.TweakSection label="Brand accent"/>
