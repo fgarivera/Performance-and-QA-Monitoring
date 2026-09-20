@@ -5,6 +5,7 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+.claude/
 *.swp
 *~
 
@@ -14,14 +15,21 @@ npm-debug.log*
 
 # Dependencies (no build, but just in case)
 node_modules/
+.venv/
+__pycache__/
 
 # Build outputs
 dist/
 build/
+.next/
+*.zip
 
 # Local env
 .env
 .env.local
+.env*
+auth*
+*.key
 
 # Internal/preview artifacts from this project's tooling
 .thumbnail
